@@ -1,45 +1,34 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import React from "react";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import { createStackNavigator } from "@react-navigation/stack";
+import Home from "./home";
+import Splash from "./splash";
+import { Text } from "react-native";
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+// Fallback screen for unmatched routes
+function NotFoundScreen() {
+  return <Text>Screen Not Found</Text>;
+}
 
+// // Drawer Navigator Setup
+// function MyDrawer() {
+//   return (
+//     <Drawer.Navigator screenOptions={{ headerShown: false }}>
+//       <Drawer.Screen name="Home" component={Home} />
+//       <Drawer.Screen name="NotFound" component={NotFoundScreen} />
+//     </Drawer.Navigator>
+//   );
+// }
+
+// Stack Navigator Setup without NavigationContainer
+export default function MyStack() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Splash" component={Splash} />
+      <Stack.Screen name="Home" component={Home} />
+      </Stack.Navigator>
   );
 }
