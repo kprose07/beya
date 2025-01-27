@@ -65,6 +65,7 @@ export default StyleSheet.create({
     rowGap: 20,
     borderWidth: 1,
     borderColor: "rgb(135, 135, 135)",
+    backgroundColor: "#FFFFFF",
   },
   how_title: {
     width: "100%",
