@@ -1,35 +1,23 @@
 import React, { useEffect, useRef } from "react";
-import {
-  StyleSheet,
-  View,
-  Animated,
-  Image,
-  Text,
-  TouchableOpacity,
-  Dimensions,
-  Easing,
-} from "react-native";
+import { Animated, Image, Text, TouchableOpacity, View, Dimensions, Easing } from "react-native";
 import SplashStyles from "../../assets/styles/splash";
 
 export default function Splash({ navigation }) {
   const screenWidth = Dimensions.get("window").width;
-
-  // Animation values for sliding and fading
-  const slideAnim = useRef(new Animated.Value(screenWidth)).current; // Start off-screen to the right
-  const fadeAnim = useRef(new Animated.Value(0)).current; // Start fully transparent
+  const slideAnim = useRef(new Animated.Value(screenWidth)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Start animations
     Animated.parallel([
       Animated.timing(slideAnim, {
-        toValue: 10, // Stop at marginLeft = 10px
-        duration: 4000, // 4 seconds
+        toValue: 10,
+        duration: 4000,
         easing: Easing.out(Easing.exp),
         useNativeDriver: true,
       }),
       Animated.timing(fadeAnim, {
-        toValue: 1, // Fade in to full opacity
-        duration: 4000, // 4 seconds
+        toValue: 1,
+        duration: 4000,
         easing: Easing.out(Easing.exp),
         useNativeDriver: true,
       }),
@@ -49,21 +37,16 @@ export default function Splash({ navigation }) {
         />
         <TouchableOpacity
           style={SplashStyles.login_btn}
-          onPress={() => navigation.replace("Home")} // Navigate to Main (Drawer)
+          onPress={() => navigation.replace("Main")} // Navigate to Main (Drawer)
         >
           <Text style={SplashStyles.login_text}>Login</Text>
         </TouchableOpacity>
         <Text style={SplashStyles.reg_txt}>Register</Text>
       </View>
-
-      {/* Sliding and Fading Background Image */}
       <Animated.Image
         style={[
           SplashStyles.splash_bg,
-          {
-            opacity: fadeAnim, // Apply fade-in
-            transform: [{ translateX: slideAnim }], // Apply sliding
-          },
+          { opacity: fadeAnim, transform: [{ translateX: slideAnim }] },
         ]}
         source={require("../../assets/images/splashbg.png")}
       />

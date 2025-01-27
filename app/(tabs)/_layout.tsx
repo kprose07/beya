@@ -1,34 +1,35 @@
 import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
-import Home from "./home";
-import Splash from "./splash";
-import { Text } from "react-native";
+import Splash from "./splash"; // Adjust path as needed
+import Home from "./home";     // Adjust path as needed
+import History from "./history"; // Adjust path as needed
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
 
-// Fallback screen for unmatched routes
-function NotFoundScreen() {
-  return <Text>Screen Not Found</Text>;
+function MyDrawer() {
+  return (
+    <Drawer.Navigator screenOptions={{ headerShown: false }}>
+      <Drawer.Screen name="Home" component={Home} />
+      <Drawer.Screen name="History" component={History} />
+    </Drawer.Navigator>
+  );
 }
 
-// // Drawer Navigator Setup
-// function MyDrawer() {
-//   return (
-//     <Drawer.Navigator screenOptions={{ headerShown: false }}>
-//       <Drawer.Screen name="Home" component={Home} />
-//       <Drawer.Screen name="NotFound" component={NotFoundScreen} />
-//     </Drawer.Navigator>
-//   );
-// }
-
-// Stack Navigator Setup without NavigationContainer
-export default function MyStack() {
+function MyStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Splash" component={Splash} />
-      <Stack.Screen name="Home" component={Home} />
-      </Stack.Navigator>
+      <Stack.Screen name="Main" component={MyDrawer} />
+    </Stack.Navigator>
+  );
+}
+
+export default function App() {
+  return (
+      <MyStack />
+ 
   );
 }
