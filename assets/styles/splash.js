@@ -34,7 +34,10 @@ export default StyleSheet.create({
     height: 74,
     borderRadius: 20,
     backgroundColor: "#2B303A",
-    alignItems: "center", // Center the content horizontally
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center", // Center the content horizontally4
+    padding: 0,
   },
   reg_txt: {
     color: "#2B303A",
@@ -47,9 +50,6 @@ export default StyleSheet.create({
   login_text: {
     color: "white",
     fontSize: 40,
-    textAlign: "center",
-    textAlignVertical: "center",
-    flex: 1,
   },
   //   animatedContainer: {
   //     position: "absolute",

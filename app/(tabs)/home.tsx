@@ -1,14 +1,20 @@
 import { CameraView, useCameraPermissions, Camera } from 'expo-camera';
 import { useState, useRef } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import HomeStyle from "../../assets/styles/home";
 
-export default function Home({ navigation }) {
+export default function Home() {
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState(null); 
-  const cameraRef = useRef(null); 
-  const [showHowTo, setShowHowTo] = useState<boolean>(false); // Explicitly typing showHowTo as boolean
+  const cameraRef = useRef(null);
+  const navigation = useNavigation(); // Hook for navigation
+  const [showHowTo, setShowHowTo] = useState<boolean>(false); 
+
+  // If permission is null (still loading), show nothing
   if (!permission) return <View />;
+
+  // If permission isn't granted, ask for it
   if (!permission.granted) {
     return (
       <View style={styles.container}>
@@ -18,18 +24,23 @@ export default function Home({ navigation }) {
     );
   }
 
+  // Capture the picture and navigate to Process screen
   async function takePicture() {
     if (cameraRef.current) {
       const photoData = await cameraRef.current.takePictureAsync();
-      setPhoto(photoData.uri); 
+      setPhoto(photoData.uri);
+      navigation.navigate("Process", { photoUri: photoData.uri });
     }
   }
 
   return (
     <View style={HomeStyle.h_container}>
+      {/* Camera Section */}
       <View style={HomeStyle.h_colTwo}>
         <CameraView style={styles.camera} ref={cameraRef} />
       </View>
+
+      {/* Top Bar (Menu + Help Button) */}
       <View style={HomeStyle.h_colOne}>
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <Image style={HomeStyle.menu_img} source={require("../../assets/images/menu.png")} />
@@ -38,6 +49,8 @@ export default function Home({ navigation }) {
           <Image source={require("../../assets/images/qblue.png")} />
         </TouchableOpacity>
       </View>
+
+      {/* Camera Controls (Flashlight + Scan + History) */}
       <View style={HomeStyle.h_colThree}>
         <Image style={HomeStyle.flashlight} source={require("../../assets/images/Flash.png")} />
         <TouchableOpacity style={HomeStyle.scanButton} onPress={takePicture}>
@@ -45,7 +58,8 @@ export default function Home({ navigation }) {
         </TouchableOpacity>
         <Image style={HomeStyle.history} source={require("../../assets/images/history.png")} />
       </View>
-      {photo && <Image source={{ uri: photo }} style={{ position: "absolute",width: "80%", height: "80%", display: 'flex',justifyContent:"center",alignSelf:"center", marginTop:"20%"}} />}
+
+      {/* Display How To Use Modal */}
       {showHowTo && (
         <View style={HomeStyle.how_to}>
           <Text style={HomeStyle.how_title}>How To Use</Text>
@@ -74,7 +88,7 @@ export default function Home({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { display: "flex", justifyContent: 'center',width:"100%",height:"100%" },
+  container: { display: "flex", justifyContent: 'center', width: "100%", height: "100%" },
   message: { textAlign: 'center', paddingBottom: 10 },
   camera: { display: "flex", justifyContent: 'flex-end', alignItems: 'center', width: '100%', height: '100%' },
   scanButton: { width: 80, height: 80, borderRadius: 40, backgroundColor: "rgba(255, 255, 255, 0.5)", justifyContent: "center", alignItems: "center", marginBottom: 30, alignSelf: 'center' }
