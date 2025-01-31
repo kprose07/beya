@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions } from "react-native";
+
+const { width, height } = Dimensions.get("window");
 
 export default function Process({ route, navigation }) {
   const { photoUri } = route.params;
@@ -20,10 +22,10 @@ export default function Process({ route, navigation }) {
         <View style={styles.imageContainer}>
           <Image source={{ uri: photoUri }} style={styles.image} />
           <View style={styles.buttonContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("History", { photoUri })} style={styles.saveButton}>
+            <TouchableOpacity onPress={() => navigation.navigate("Main", { screen: "History", params: { photoUri } })} style={styles.saveButton}>
               <Text style={styles.buttonText}>Save</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate("Home")} style={styles.deleteButton}>
+            <TouchableOpacity onPress={() => navigation.navigate("Main", { screen: "Home"})} style={styles.deleteButton}>
               <Text style={styles.buttonText}>Delete</Text>
             </TouchableOpacity>
           </View>
@@ -38,9 +40,9 @@ const styles = StyleSheet.create({
   loadingContainer: { alignItems: "center" },
   loadingText: { marginTop: 10, fontSize: 16, color: "#555" },
   imageContainer: { alignItems: "center" },
-  image: { width: 300, height: 400, marginBottom: 20, borderRadius: 10 },
+  image: { width: width * 0.8, height: height * 0.7, marginBottom: 20},
   buttonContainer: { flexDirection: "row", gap: 20 },
-  saveButton: { backgroundColor: "#27ae60", padding: 10, borderRadius: 5 },
-  deleteButton: { backgroundColor: "#e74c3c", padding: 10, borderRadius: 5 },
+  saveButton: { backgroundColor: "#2B303A", padding: 15, borderRadius: 5,borderBlockColor:"2B303A" },
+  deleteButton: { backgroundColor: "#e74c3c", padding: 15, borderRadius: 5 },
   buttonText: { color: "#fff", fontSize: 16 },
 });
