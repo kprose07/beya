@@ -5,6 +5,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Splash from "./splash"; // Adjust path as needed
 import Home from "./home";     // Adjust path as needed
 import History from "./history"; // Adjust path as needed
+import Process from "./process"; // Adjust path as needed
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
@@ -14,6 +15,7 @@ function MyDrawer() {
     <Drawer.Navigator screenOptions={{ headerShown: false }}>
       <Drawer.Screen name="Home" component={Home} />
       <Drawer.Screen name="History" component={History} />
+      <Stack.Screen name="Process" component={Process} />
     </Drawer.Navigator>
   );
 }
