@@ -3,6 +3,7 @@
     "name": "T.A.R",
     "slug": "t-a-r",
     "version": "1.0.0",
+    "description":"Teaching You, Your Way",
     "orientation": "portrait",
     "icon": "./assets/images/TAR.png",
     "scheme": "myapp",
