@@ -14,7 +14,7 @@ export default StyleSheet.create({
     padding: 20,
     marginLeft: "5%",
     justifyContent: "flex-start",
-    marginTop: "20%",
+    marginTop: "15%",
     position: "absolute",
     zIndex: 1,
   },
@@ -27,7 +27,7 @@ export default StyleSheet.create({
     flexDirection: "column",
   },
   his_colTwoT: {
-    marginTop: "18%",
+    marginTop: "10%",
     fontFamily: "Fredoka_400Regular",
     fontSize: 25,
     margin: 0,
