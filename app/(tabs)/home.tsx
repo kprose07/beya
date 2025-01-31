@@ -1,19 +1,29 @@
-import { CameraView, useCameraPermissions, Camera } from 'expo-camera';
-import { useState, useRef } from 'react';
+import { Camera, CameraType } from 'expo-camera'; // Removed FlashMode import for now
+import { useState, useRef, useEffect } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import HomeStyle from "../../assets/styles/home";
 
-export default function Home({ navigation }) {
-  const [permission, requestPermission] = useCameraPermissions();
-  const [photo, setPhoto] = useState(null); 
-  const cameraRef = useRef(null); 
-  const [showHowTo, setShowHowTo] = useState<boolean>(false); // Explicitly typing showHowTo as boolean
-  if (!permission) return <View />;
-  if (!permission.granted) {
+export default function Home() {
+  const [permission, setPermission] = useState(false);
+  const [flashMode, setFlashMode] = useState('off'); // Use string values instead of FlashMode
+  const cameraRef = useRef(null);
+  const navigation = useNavigation();
+  const [showHowTo, setShowHowTo] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Request camera permissions on component mount
+    const requestPermissions = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setPermission(status === 'granted');
+    };
+    requestPermissions();
+  }, []);
+
+  if (!permission) {
     return (
       <View style={styles.container}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="Grant Permission" />
+        <Button onPress={() => Camera.requestCameraPermissionsAsync()} title="Grant Permission" />
       </View>
     );
   }
@@ -21,15 +31,25 @@ export default function Home({ navigation }) {
   async function takePicture() {
     if (cameraRef.current) {
       const photoData = await cameraRef.current.takePictureAsync();
-      setPhoto(photoData.uri); 
+      navigation.navigate("Process", { photoUri: photoData.uri });
     }
+  }
+
+  function toggleFlash() {
+    setFlashMode(prevMode => (prevMode === 'off' ? 'torch' : 'off')); // Toggle between 'off' and 'torch'
   }
 
   return (
     <View style={HomeStyle.h_container}>
       <View style={HomeStyle.h_colTwo}>
-        <CameraView style={styles.camera} ref={cameraRef} />
+        <Camera
+          style={styles.camera}
+          ref={cameraRef}
+          flashMode={flashMode} // Use string values for flashMode
+          type={CameraType.back}
+        />
       </View>
+
       <View style={HomeStyle.h_colOne}>
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <Image style={HomeStyle.menu_img} source={require("../../assets/images/menu.png")} />
@@ -38,14 +58,24 @@ export default function Home({ navigation }) {
           <Image source={require("../../assets/images/qblue.png")} />
         </TouchableOpacity>
       </View>
+
       <View style={HomeStyle.h_colThree}>
-        <Image style={HomeStyle.flashlight} source={require("../../assets/images/Flash.png")} />
+        <TouchableOpacity onPress={toggleFlash}>
+          <Image
+            style={HomeStyle.flashlight}
+            source={
+              flashMode === 'off'
+                ? require("../../assets/images/Flash.png")
+                : require("../../assets/images/Flash.png")
+            }
+          />
+        </TouchableOpacity>
         <TouchableOpacity style={HomeStyle.scanButton} onPress={takePicture}>
           <Image style={HomeStyle.scan} source={require("../../assets/images/scan.png")} />
         </TouchableOpacity>
         <Image style={HomeStyle.history} source={require("../../assets/images/history.png")} />
       </View>
-      {photo && <Image source={{ uri: photo }} style={{ position: "absolute",width: "80%", height: "80%", display: 'flex',justifyContent:"center",alignSelf:"center", marginTop:"20%"}} />}
+
       {showHowTo && (
         <View style={HomeStyle.how_to}>
           <Text style={HomeStyle.how_title}>How To Use</Text>
