@@ -1,22 +1,37 @@
 import { useEffect, useRef, useState } from "react";
 import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions } from "react-native";
 import Canvas from "react-native-canvas";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+
 const { width, height } = Dimensions.get("window");
 
 export default function Process({ route, navigation }) {
   const { photoUri } = route.params;
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 5000); // Simulate processing delay
+    const timer = setTimeout(() => setLoading(false), 3000);
     return () => clearTimeout(timer);
   }, []);
-  // Make the canvas handler async so we can await drawing operations
 
-  handleCanvas = (canvas) => {
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'purple';
-    ctx.fillRect(0, 0, 100, 100);
-  }
+  const saveImage = async () => {
+    try {
+      // Retrieve existing history
+      const history = await AsyncStorage.getItem("history");
+      let historyArray = history ? JSON.parse(history) : [];
+
+      // Add new image
+      historyArray.push(photoUri);
+
+      // Save updated history back to storage
+      await AsyncStorage.setItem("history", JSON.stringify(historyArray));
+
+      // Navigate to history screen
+      navigation.navigate("Main", { screen: "History" });
+    } catch (error) {
+      console.error("Error saving image:", error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -31,16 +46,17 @@ export default function Process({ route, navigation }) {
           <Image source={{ uri: photoUri }} style={styles.image} />
 
           {/* Canvas overlay */}
-          <Canvas style={styles.canvas} ref={this.handleCanvas} />
+          <Canvas style={styles.canvas} ref={(canvas) => {
+            if (canvas) {
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = 'purple';
+              ctx.fillRect(0, 0, 100, 100);
+            }
+          }} />
 
           {/* Buttons */}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("Main", { screen: "History", params: { photoUri } })
-              }
-              style={styles.saveButton}
-            >
+            <TouchableOpacity onPress={saveImage} style={styles.saveButton}>
               <Text style={styles.buttonText}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity
