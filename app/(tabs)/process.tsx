@@ -1,22 +1,52 @@
 import { useEffect, useRef, useState } from "react";
 import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions } from "react-native";
 import Canvas from "react-native-canvas";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import ViewShot from "react-native-view-shot"; // Import ViewShot
+import * as FileSystem from "expo-file-system"; // Import FileSystem for saving files locally
+
 const { width, height } = Dimensions.get("window");
 
 export default function Process({ route, navigation }) {
   const { photoUri } = route.params;
   const [loading, setLoading] = useState(true);
+  const viewShotRef = useRef(null);
+
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 5000); // Simulate processing delay
+    const timer = setTimeout(() => setLoading(false), 3000);
     return () => clearTimeout(timer);
   }, []);
-  // Make the canvas handler async so we can await drawing operations
 
-  handleCanvas = (canvas) => {
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'purple';
-    ctx.fillRect(0, 0, 100, 100);
-  }
+  const saveImage = async () => {
+    try {
+      // Capture the entire view (image + canvas overlay)
+      const uri = await viewShotRef.current.capture();
+
+      // Create a new file path in the documentDirectory
+      const fileUri = FileSystem.documentDirectory + `image_${Date.now()}.jpg`;
+
+      // Fetch the image as a binary stream and save it to the file system
+      const fileContent = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      await FileSystem.writeAsStringAsync(fileUri, fileContent, {
+        encoding: FileSystem.EncodingType.Base64, // Ensure it's saved as an image
+      });
+
+      // Retrieve existing history
+      const history = await AsyncStorage.getItem("history");
+      let historyArray = history ? JSON.parse(history) : [];
+
+      // Add new image (the fileUri, not the temporary uri)
+      historyArray.push(fileUri);
+
+      // Save updated history back to storage
+      await AsyncStorage.setItem("history", JSON.stringify(historyArray));
+
+      // Navigate to history screen
+      navigation.navigate("Main", { screen: "History" });
+    } catch (error) {
+      console.error("Error saving image:", error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -26,30 +56,33 @@ export default function Process({ route, navigation }) {
           <Text style={styles.loadingText}>Processing...</Text>
         </View>
       ) : (
-        <View style={styles.imageContainer}>
+        <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 0.8 }} style={styles.imageContainer}>
           {/* Base image */}
           <Image source={{ uri: photoUri }} style={styles.image} />
 
           {/* Canvas overlay */}
-          <Canvas style={styles.canvas} ref={this.handleCanvas} />
-
-          {/* Buttons */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("Main", { screen: "History", params: { photoUri } })
+          <Canvas
+            style={styles.canvas}
+            ref={(canvas) => {
+              if (canvas) {
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle = "purple";
+                ctx.fillRect(0, 0, 100, 100);
               }
-              style={styles.saveButton}
-            >
-              <Text style={styles.buttonText}>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Main", { screen: "Home" })}
-              style={styles.deleteButton}
-            >
-              <Text style={styles.buttonText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
+            }}
+          />
+        </ViewShot>
+      )}
+
+      {/* Buttons */}
+      {!loading && (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity onPress={saveImage} style={styles.saveButton}>
+            <Text style={styles.buttonText}>Save</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("Main", { screen: "Home" })} style={styles.deleteButton}>
+            <Text style={styles.buttonText}>Delete</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -57,53 +90,55 @@ export default function Process({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    backgroundColor: "#fff" 
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
-  loadingContainer: { 
-    alignItems: "center" 
+  loadingContainer: {
+    alignItems: "center",
   },
-  loadingText: { 
-    marginTop: 10, 
-    fontSize: 16, 
-    color: "#555" 
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#555",
   },
-  imageContainer: { 
-    alignItems: "center", 
-    position: "relative" 
+  imageContainer: {
+    alignItems: "center",
+    position: "relative",
+    width: width * 0.8,
+    height: height * 0.7,
   },
-  image: { 
-    width: width * 0.8, 
-    height: height * 0.7, 
-    position: "absolute", 
-    zIndex: 0 
+  image: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    zIndex: 0,
   },
-  canvas: { 
-    width: width * 0.8, 
-    height: height * 0.7, 
-    position: "absolute", 
-    zIndex: 1 
+  canvas: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    zIndex: 1,
   },
-  buttonContainer: { 
-    flexDirection: "row", 
-    gap: 20, 
-    marginTop: height * 0.75 
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 20,
+    marginTop: 20,
   },
-  saveButton: { 
-    backgroundColor: "#2B303A", 
-    padding: 15, 
-    borderRadius: 5 
+  saveButton: {
+    backgroundColor: "#2B303A",
+    padding: 15,
+    borderRadius: 5,
   },
-  deleteButton: { 
-    backgroundColor: "#e74c3c", 
-    padding: 15, 
-    borderRadius: 5 
+  deleteButton: {
+    backgroundColor: "#e74c3c",
+    padding: 15,
+    borderRadius: 5,
   },
-  buttonText: { 
-    color: "#fff", 
-    fontSize: 16 
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });
