@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Text, Image, View, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Image, TouchableOpacity, ScrollView, Alert, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system";
@@ -50,20 +50,31 @@ export default function HistoryScreen({ navigation }) {
   };
 
   const downloadImage = async (uri) => {
+    if (!uri) {
+      Alert.alert("Invalid Image", "The image URI is invalid.");
+      return;
+    }
+
     try {
-      // Request permission to access media library
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== "granted") {
         Alert.alert("Permission Denied", "You need to grant storage permissions to download images.");
         return;
       }
 
-      // Create a filename and download the image
-      const fileUri = FileSystem.documentDirectory + `image_${Date.now()}.jpg`;
-      const { uri: newUri } = await FileSystem.downloadAsync(uri, fileUri);
+      // Read the image file content from the URI in Base64 format
+      const fileContent = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+
+      // Create a new temporary file path in the document directory
+      const fileUri = FileSystem.documentDirectory + `downloaded_image_${Date.now()}.jpg`;
+
+      // Write the Base64 content to the new file
+      await FileSystem.writeAsStringAsync(fileUri, fileContent, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
       // Save the file to the gallery
-      await MediaLibrary.createAssetAsync(newUri);
+      await MediaLibrary.createAssetAsync(fileUri);
       Alert.alert("Download Complete", "Image saved to gallery.");
     } catch (error) {
       console.error("Download Error:", error);
@@ -87,10 +98,10 @@ export default function HistoryScreen({ navigation }) {
               <Image source={{ uri }} style={styles.image} />
               <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.downloadButton} onPress={() => downloadImage(uri)}>
-                <Image source={download} style={styles.btn_img}/>
+                  <Image source={download} style={styles.btn_img} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.deleteButton} onPress={() => deleteImage(index)}>
-                <Image source={trash} style={styles.btn_img}/>
+                  <Image source={trash} style={styles.btn_img} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -114,26 +125,25 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "flex-start",
     marginTop: "14%",
-    rowGap:25,
-  
+    rowGap: 25,
   },
   title: {
     fontSize: 20,
     fontWeight: "bold",
   },
   scrollContainer: {
-    display:"flex",
-    width:"100%",
+    display: "flex",
+    width: "100%",
     alignItems: "center",
-    marginTop:20,
+    marginTop: 20,
   },
   card: {
-    display:"flex",
-    flexDirection:"row",
-    columnGap:20,
-    justifyContent:"center",
+    display: "flex",
+    flexDirection: "row",
+    columnGap: 20,
+    justifyContent: "center",
     width: 200,
-    height:310,
+    height: 310,
     borderRadius: 10,
     padding: 10,
     alignItems: "center",
@@ -149,9 +159,9 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 8,
   },
-  btn_img:{
-    width:40,
-    height:40,
+  btn_img: {
+    width: 40,
+    height: 40,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -176,4 +186,3 @@ const styles = StyleSheet.create({
     color: "#555",
   },
 });
-

@@ -3,8 +3,7 @@ import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Dim
 import Canvas from "react-native-canvas";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import ViewShot from "react-native-view-shot"; // Import ViewShot
-import * as MediaLibrary from "expo-media-library";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system"; // Import FileSystem for saving files locally
 
 const { width, height } = Dimensions.get("window");
 
@@ -23,12 +22,21 @@ export default function Process({ route, navigation }) {
       // Capture the entire view (image + canvas overlay)
       const uri = await viewShotRef.current.capture();
 
+      // Create a new file path in the documentDirectory
+      const fileUri = FileSystem.documentDirectory + `image_${Date.now()}.jpg`;
+
+      // Fetch the image as a binary stream and save it to the file system
+      const fileContent = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      await FileSystem.writeAsStringAsync(fileUri, fileContent, {
+        encoding: FileSystem.EncodingType.Base64, // Ensure it's saved as an image
+      });
+
       // Retrieve existing history
       const history = await AsyncStorage.getItem("history");
       let historyArray = history ? JSON.parse(history) : [];
 
-      // Add new image
-      historyArray.push(uri);
+      // Add new image (the fileUri, not the temporary uri)
+      historyArray.push(fileUri);
 
       // Save updated history back to storage
       await AsyncStorage.setItem("history", JSON.stringify(historyArray));
