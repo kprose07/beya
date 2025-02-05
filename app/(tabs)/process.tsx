@@ -34,11 +34,11 @@ export default function Process({ route, navigation }) {
           "https://mathsolverv2-406702899784.us-central1.run.app/solve",
           formData,
           {
-            headers: { "Content-Type": "multipart/form-data" },
+            headers: { "Content-Type": "form-data" },
           }
         );
-        setSteps(response.data);
-        console.log(response.data);
+        setSteps(response);
+        console.log(response);
       } catch (error) {
         console.error("Error processing image:", error);
       } finally {
@@ -81,7 +81,7 @@ export default function Process({ route, navigation }) {
   style={styles.canvas}
   ref={(canvas) => {
     if (canvas) {
-      console.log("Steps Data:", steps);
+      //console.log("Steps Data:", steps);
       setTimeout(() => {
         const ctx = canvas.getContext("2d");
         if (ctx) {
