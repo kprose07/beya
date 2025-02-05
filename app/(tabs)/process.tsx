@@ -38,7 +38,7 @@ export default function Process({ route, navigation }) {
           }
         );
         setSteps(response);
-        console.log(response);
+        console.log(response.config.data._parts);
       } catch (error) {
         console.error("Error processing image:", error);
       } finally {
