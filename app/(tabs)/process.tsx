@@ -1,52 +1,71 @@
 import { useEffect, useRef, useState } from "react";
 import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions } from "react-native";
 import Canvas from "react-native-canvas";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-import ViewShot from "react-native-view-shot"; // Import ViewShot
-import * as FileSystem from "expo-file-system"; // Import FileSystem for saving files locally
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import ViewShot from "react-native-view-shot";
+import * as FileSystem from "expo-file-system";
+import axios from "axios";
 
 const { width, height } = Dimensions.get("window");
 
 export default function Process({ route, navigation }) {
   const { photoUri } = route.params;
   const [loading, setLoading] = useState(true);
+  const [steps, setSteps] = useState(null);
   const viewShotRef = useRef(null);
-
+  
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 3000);
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchData = async () => {
+      try {
+        const fileInfo = await FileSystem.getInfoAsync(photoUri);
+        if (!fileInfo.exists) {
+          console.error("File does not exist at path:", photoUri);
+          return;
+        }
+        
+        const formData = new FormData();
+        formData.append("image", {
+          uri: photoUri,
+          type: "image/jpeg",
+          name: `image_${Date.now()}.jpg`,
+        });
+
+        const response = await axios.post(
+          "https://mathsolverv2-406702899784.us-central1.run.app/solve",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        setSteps(response.data);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Error processing image:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [photoUri]);
 
   const saveImage = async () => {
     try {
-      // Capture the entire view (image + canvas overlay)
       const uri = await viewShotRef.current.capture();
-
-      // Create a new file path in the documentDirectory
       const fileUri = FileSystem.documentDirectory + `image_${Date.now()}.jpg`;
-
-      // Fetch the image as a binary stream and save it to the file system
       const fileContent = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-      await FileSystem.writeAsStringAsync(fileUri, fileContent, {
-        encoding: FileSystem.EncodingType.Base64, // Ensure it's saved as an image
-      });
+      await FileSystem.writeAsStringAsync(fileUri, fileContent, { encoding: FileSystem.EncodingType.Base64 });
 
-      // Retrieve existing history
       const history = await AsyncStorage.getItem("history");
       let historyArray = history ? JSON.parse(history) : [];
-
-      // Add new image (the fileUri, not the temporary uri)
       historyArray.push(fileUri);
-
-      // Save updated history back to storage
       await AsyncStorage.setItem("history", JSON.stringify(historyArray));
-
-      // Navigate to history screen
+      
       navigation.navigate("Main", { screen: "History" });
     } catch (error) {
       console.error("Error saving image:", error);
     }
   };
+
 
   return (
     <View style={styles.container}>
@@ -57,24 +76,27 @@ export default function Process({ route, navigation }) {
         </View>
       ) : (
         <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 0.8 }} style={styles.imageContainer}>
-          {/* Base image */}
           <Image source={{ uri: photoUri }} style={styles.image} />
-
-          {/* Canvas overlay */}
           <Canvas
             style={styles.canvas}
             ref={(canvas) => {
-              if (canvas) {
+              if (canvas && steps) {
                 const ctx = canvas.getContext("2d");
-                ctx.fillStyle = "purple";
-                ctx.fillRect(0, 0, 100, 100);
+                ctx.font = "20px Arial";
+                ctx.fillStyle = "red";
+                ctx.fillRect(10,10,100,100);
+                let y = 30;
+                for (let key in steps) {
+                  if (steps.hasOwnProperty(key)) {
+                    ctx.fillText(`${key}: ${steps[key]}`, 10, y);
+                    y += 30;
+                  }
+                }
               }
             }}
           />
         </ViewShot>
       )}
-
-      {/* Buttons */}
       {!loading && (
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={saveImage} style={styles.saveButton}>
