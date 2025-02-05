@@ -78,23 +78,29 @@ export default function Process({ route, navigation }) {
         <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 0.8 }} style={styles.imageContainer}>
           <Image source={{ uri: photoUri }} style={styles.image} />
           <Canvas
-            style={styles.canvas}
-            ref={(canvas) => {
-              if (canvas && steps) {
-                const ctx = canvas.getContext("2d");
-                ctx.font = "20px Arial";
-                ctx.fillStyle = "red";
-                ctx.fillRect(10,10,100,100);
-                let y = 30;
-                for (let key in steps) {
-                  if (steps.hasOwnProperty(key)) {
-                    ctx.fillText(`${key}: ${steps[key]}`, 10, y);
-                    y += 30;
-                  }
-                }
-              }
-            }}
-          />
+  style={styles.canvas}
+  ref={(canvas) => {
+    if (canvas) {
+      console.log("Steps Data:", steps);
+      setTimeout(() => {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
+          ctx.font = "50px Arial";
+          ctx.fillStyle = "red";
+          ctx.fillText("HI", 100,100);
+
+          let y = 0;
+          Object.entries(steps).forEach(([key, value]) => {
+            ctx.fillText(`${key}: ${value}`, 0, y);
+            y += 3;
+          });
+        }
+      }, 100); // Delay drawing slightly to ensure canvas is ready
+    }
+  }}
+/>
+
         </ViewShot>
       )}
       {!loading && (

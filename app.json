@@ -3,7 +3,7 @@
     "name": "T.A.R",
     "slug": "t-a-r",
     "version": "1.0.0",
-    "description":"Teaching You, Your Way",
+    "description": "Teaching You, Your Way",
     "orientation": "portrait",
     "icon": "./assets/images/TAR.png",
     "scheme": "myapp",
@@ -38,6 +38,20 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "5ea78626-0328-48b5-a5a7-f477d1a7ca47"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5ea78626-0328-48b5-a5a7-f477d1a7ca47"
     }
   }
 }

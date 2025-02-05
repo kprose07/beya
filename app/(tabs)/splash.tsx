@@ -39,7 +39,7 @@ export default function Splash({ navigation }) {
           style={SplashStyles.login_btn}
           onPress={() => navigation.replace("Main")} // Navigate to Main (Drawer)
         >
-          <Text style={SplashStyles.login_text}>Login</Text>
+          <Text style={SplashStyles.login_text}>Start</Text>
         </TouchableOpacity>
         <Text style={SplashStyles.reg_txt}>Register</Text>
       </View>
