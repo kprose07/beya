@@ -64,7 +64,7 @@ export default function Home() {
         <View style={HomeStyle.how_to}>
           <Text style={HomeStyle.how_title}>How To Use</Text>
           <View>
-            <Text style={HomeStyle.how_qTAR}>?TAR</Text>
+            <Text style={HomeStyle.how_qTAR}>QTAR</Text>
             <Text style={HomeStyle.how_subt}>
               TAR will show you how to solve a question or problem
             </Text>
