@@ -1,9 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  Dimensions,
+  ScrollView,
+  Alert,
+} from "react-native";
 import * as Font from "expo-font"; // Import expo-font
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ViewShot from "react-native-view-shot";
 import * as FileSystem from "expo-file-system";
+import * as Print from "expo-print";
 import axios from "axios";
 
 const { width, height } = Dimensions.get("window");
@@ -18,7 +29,7 @@ export default function Process({ route, navigation }) {
   useEffect(() => {
     async function loadFonts() {
       await Font.loadAsync({
-        "ComingSoon": require("../../assets/fonts/comingSoon.ttf"), // Make sure the path is correct
+        ComingSoon: require("../../assets/fonts/comingSoon.ttf"),
       });
       setFontsLoaded(true);
     }
@@ -49,7 +60,6 @@ export default function Process({ route, navigation }) {
           }
         );
         setSteps(response.data);
-        console.log(response.data);
       } catch (error) {
         console.error("Error processing image:", error);
       } finally {
@@ -58,6 +68,116 @@ export default function Process({ route, navigation }) {
     };
     fetchData();
   }, [photoUri]);
+
+  const savePDF = async () => {
+    try {
+      if (!steps || !photoUri) return;
+  
+      console.log("Image URI for PDF:", photoUri);
+  
+      const fileInfo = await FileSystem.getInfoAsync(photoUri);
+      if (!fileInfo.exists) {
+        console.error("Image file not found:", photoUri);
+        alert("Image not found.");
+        return;
+      }
+  
+      // Convert image to base64
+      const base64Image = await FileSystem.readAsStringAsync(photoUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+  
+      const stepsHtml = Object.entries(steps)
+        .map(
+          ([, value]) =>
+            `<p style="font-size: 18px; color: red; margin: 10px 0;">${value}</p>`
+        )
+        .join("");
+  
+      // Use base64 image in the HTML content
+      const htmlContent = `
+        <html>
+          <head>
+            <style>
+              body {
+                font-family: 'ComingSoon', sans-serif;
+                padding: 20px;
+                display: flex;
+                flex-direction: row;
+              }
+              .container {
+                display: flex;
+                flex-direction: column;
+              }
+              .pdf_contain {
+                display: flex;
+                flex-direction: row;
+              }
+              .image {
+                width: 400px;
+                height: 600px;
+                margin-right: 20px;
+              }
+              .text {
+                flex: 1;
+                font-size: 18px;
+                color: red;
+                line-height: 1.6;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h2 style="color: black;">T.A.R Response</h2>
+              <div class = "pdf_contain">
+              <img src="data:image/jpeg;base64,${base64Image}" class="image" />
+              <div class="text">
+                ${stepsHtml}
+              </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+  
+      const { uri } = await Print.printToFileAsync({
+        html: htmlContent,
+        base64: false,
+      });
+  
+      const fileUri = FileSystem.documentDirectory + `processed_${Date.now()}.pdf`;
+      await FileSystem.moveAsync({
+        from: uri,
+        to: fileUri,
+      });
+  
+      // Add the file URI to history
+      const history = await AsyncStorage.getItem("history");
+      let historyArray = history ? JSON.parse(history) : [];
+      historyArray.push(fileUri);
+      await AsyncStorage.setItem("history", JSON.stringify(historyArray));
+  
+      // Navigate to the history page after saving
+ navigation.navigate("Main", { screen: "History" });  
+      alert("PDF saved successfully!");
+    } catch (error) {
+      console.error("Error saving PDF:", error);
+    }
+  };
+  
+  
+  const deletePhoto = () => {
+    Alert.alert("Delete Photo?", "Are you sure you want to delete this photo?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          navigation.goBack();
+        },
+      },
+    ]);
+  };
 
   if (!fontsLoaded) {
     return (
@@ -79,20 +199,21 @@ export default function Process({ route, navigation }) {
         <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 0.8 }} style={styles.imageContainer}>
           <Image source={{ uri: photoUri }} style={styles.image} />
           <ScrollView contentContainerStyle={styles.textContainer}>
-            {steps && Object.entries(steps).map(([key, value], index) => (
-              <Text key={index} style={styles.stepText}>
-                {value}
-              </Text>
-            ))}
+            {steps &&
+              Object.entries(steps).map(([key, value], index) => (
+                <Text key={index} style={styles.stepText}>
+                  {value}
+                </Text>
+              ))}
           </ScrollView>
         </ViewShot>
       )}
       {!loading && (
         <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={() => console.log("Saving...")} style={styles.saveButton}>
-            <Text style={styles.buttonText}>Save</Text>
+          <TouchableOpacity onPress={savePDF} style={styles.saveButton}>
+            <Text style={styles.buttonText}>Save as PDF</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate("Main", { screen: "Home" })} style={styles.deleteButton}>
+          <TouchableOpacity onPress={deletePhoto} style={styles.deleteButton}>
             <Text style={styles.buttonText}>Delete</Text>
           </TouchableOpacity>
         </View>
@@ -132,16 +253,16 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "flex-end",
     width: width * 0.8,
-    padding:10,
+    padding: 10,
   },
   stepText: {
     fontSize: 24,
-    fontFamily: "ComingSoon", // Apply the loaded handwriting font
+    fontFamily: "ComingSoon",
     color: "red",
     textAlign: "left",
     flexWrap: "wrap",
     width: "60%",
-  },  
+  },
   buttonContainer: {
     flexDirection: "row",
     gap: 20,
