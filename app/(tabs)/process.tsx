@@ -31,14 +31,14 @@ export default function Process({ route, navigation }) {
         });
 
         const response = await axios.post(
-          "https://mathsolverv2-406702899784.us-central1.run.app/solve",
+          "https://mathsolverv23-406702899784.us-central1.run.app/solve",
           formData,
           {
-            headers: { "Content-Type": "form-data" },
+            headers: { "Content-Type": "multipart/form-data" },
           }
         );
-        setSteps(response);
-        console.log(response.config.data._parts);
+        setSteps(response.data);
+        console.log(response.data);
       } catch (error) {
         console.error("Error processing image:", error);
       } finally {

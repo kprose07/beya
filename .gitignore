@@ -36,3 +36,6 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+#Gemini
+/gen-lang-client-0486206811-5e107c97bd67.json
