@@ -133,6 +133,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",  // For readability of PDF filename
+    width:"100%",
+    textAlign:"left",
   },
   btn_img: {
     width: 40,
