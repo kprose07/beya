@@ -70,7 +70,7 @@ export default function HistoryScreen({ navigation }) {
         {history.length > 0 ? (
           history.map((uri, index) => (
             <View key={index} style={styles.card}>
-              <Text style={styles.cardText}>{uri.split("/").pop()}</Text>  {/* Display PDF filename */}
+              <Text style={styles.cardText}>{uri.split("/").pop()}</Text> 
               <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.downloadButton} onPress={() => openPDF(uri)}>
                   <Image source={download} style={styles.btn_img} />

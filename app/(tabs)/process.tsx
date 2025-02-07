@@ -95,50 +95,88 @@ export default function Process({ route, navigation }) {
         .join("");
   
       // Use base64 image in the HTML content
-      const htmlContent = `
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: 'ComingSoon', sans-serif;
-                padding: 20px;
-                display: flex;
-                flex-direction: row;
-              }
-              .container {
-                display: flex;
-                flex-direction: column;
-              }
-              .pdf_contain {
-                display: flex;
-                flex-direction: row;
-              }
-              .image {
-                width: 400px;
-                height: 600px;
-                margin-right: 20px;
-              }
-              .text {
-                flex: 1;
-                font-size: 18px;
-                color: red;
-                line-height: 1.6;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h2 style="color: black;">T.A.R Response</h2>
-              <div class = "pdf_contain">
-              <img src="data:image/jpeg;base64,${base64Image}" class="image" />
-              <div class="text">
-                ${stepsHtml}
-              </div>
-              </div>
-            </div>
-          </body>
-        </html>
-      `;
+     // Whiteboard-styled PDF content
+     const htmlContent = `
+     <html>
+       <head>
+         <style>
+           @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+
+           body {
+             font-family: 'Architects Daughter', cursive;
+             padding: 20px;
+             margin: 0;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             height: 100vh;
+             background-color: #f8f8f8; /* Soft whiteboard color */
+           }
+
+           .pdf_container {
+             width: 100%;
+             max-width: 800px;
+             height: 90vh;
+             background: rgb(197, 194, 194);
+             border: 2px solid rgb(187, 183, 183);
+             border-radius: 10px;
+             padding: 20px;
+             box-shadow: 5px 5px 15px rgb(197, 194, 194);
+             display: flex;
+             flex-direction: row;
+             overflow: hidden;
+           }
+
+           .image_container {
+             flex: 1;
+             display: flex;
+             justify-content: flex-start;
+             width: 400px;
+             height: 600px;
+             padding-right: 15px;
+           }
+
+           .image {
+             width: 100%;
+             height: 100%;
+             max-height: 500px;
+             border: 2px solid black;
+           }
+
+           .text_container {
+             flex: 1;
+             display: flex;
+             flex-direction: column;
+             font-size: 18px;
+             color: red;
+             line-height: 1.5;
+             overflow-y: auto; /* Enables vertical scrolling */
+             max-height: 800px; /* Ensures it stays within the page */
+             padding-right: 10px;
+           }
+
+           .title {
+             color: black;
+             font-size: 24px;
+             font-weight: bold;
+             text-align: center;
+             margin-bottom: 10px;
+           }
+         </style>
+       </head>
+       <body>
+         <div class="pdf_container">
+           <div class="image_container">
+             <img src="data:image/jpeg;base64,${base64Image}" class="image" />
+           </div>
+           <div class="text_container">
+             <h2 class="title">📝 T.A.R's Feedback</h2>
+             ${stepsHtml}
+           </div>
+         </div>
+       </body>
+     </html>
+   `;
   
       const { uri } = await Print.printToFileAsync({
         html: htmlContent,
@@ -198,6 +236,7 @@ export default function Process({ route, navigation }) {
       ) : (
         <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 0.8 }} style={styles.imageContainer}>
           <Image source={{ uri: photoUri }} style={styles.image} />
+          <View style={styles.contBoard}>
           <ScrollView contentContainerStyle={styles.textContainer}>
             {steps &&
               Object.entries(steps).map(([key, value], index) => (
@@ -206,6 +245,7 @@ export default function Process({ route, navigation }) {
                 </Text>
               ))}
           </ScrollView>
+          </View>
         </ViewShot>
       )}
       {!loading && (
@@ -240,28 +280,37 @@ const styles = StyleSheet.create({
   imageContainer: {
     alignItems: "center",
     position: "relative",
-    width: width * 0.8,
+    width: width * 0.9,
     height: height * 0.7,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    rowGap: 12,
   },
   image: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
+    width: "60%",
+    height: "50%",
     zIndex: 0,
   },
+  contBoard:{
+    borderColor: "rgb(187, 183, 183)",
+    borderWidth: 2,
+    borderRadius: 10,
+    width:330,
+    height:250,
+    padding:10
+  },
   textContainer: {
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-    width: width * 0.8,
     padding: 10,
+    zIndex: 1,
+    width: "100%",
   },
   stepText: {
-    fontSize: 24,
+    fontSize: 18,
     fontFamily: "ComingSoon",
     color: "red",
     textAlign: "left",
     flexWrap: "wrap",
-    width: "60%",
   },
   buttonContainer: {
     flexDirection: "row",
