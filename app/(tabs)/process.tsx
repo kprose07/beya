@@ -82,84 +82,137 @@ export default function Process({ route, navigation }) {
         return;
       }
   
-      // Convert image to base64
-      const base64Image = await FileSystem.readAsStringAsync(photoUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Prompt user for file name
+      Alert.prompt(
+        "Save PDF",
+        "Enter a name for your PDF file:",
+        async (fileName) => {
+          if (!fileName) {
+            alert("File name cannot be empty!");
+            return;
+          }
   
-      const stepsHtml = Object.entries(steps)
-        .map(
-          ([, value]) =>
-            `<p style="font-size: 18px; color: red; margin: 10px 0;">${value}</p>`
-        )
-        .join("");
+          const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_-]/g, "_"); // Remove invalid characters
   
-      // Use base64 image in the HTML content
-      const htmlContent = `
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: 'ComingSoon', sans-serif;
-                padding: 20px;
-                display: flex;
-                flex-direction: row;
-              }
-              .container {
-                display: flex;
-                flex-direction: column;
-              }
-              .pdf_contain {
-                display: flex;
-                flex-direction: row;
-              }
-              .image {
-                width: 400px;
-                height: 600px;
-                margin-right: 20px;
-              }
-              .text {
-                flex: 1;
-                font-size: 18px;
-                color: red;
-                line-height: 1.6;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h2 style="color: black;">T.A.R Response</h2>
-              <div class = "pdf_contain">
-              <img src="data:image/jpeg;base64,${base64Image}" class="image" />
-              <div class="text">
-                ${stepsHtml}
+          // Convert image to base64
+          const base64Image = await FileSystem.readAsStringAsync(photoUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+  
+          const stepsHtml = Object.entries(steps)
+            .map(
+              ([, value]) =>
+                `<p style="font-size: 18px; color: red; margin: 10px 0;">${value}</p>`
+            )
+            .join("");
+  
+          // Whiteboard-styled PDF content
+          const htmlContent = `
+          <html>
+            <head>
+              <style>
+                @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+     
+                body {
+                  font-family: 'Architects Daughter', cursive;
+                  padding: 20px;
+                  margin: 0;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  height: 100vh;
+                  background-color: #f8f8f8; /* Soft whiteboard color */
+                }
+     
+                .pdf_container {
+                  width: 100%;
+                  max-width: 800px;
+                  height: 90vh;
+                  background: rgb(197, 194, 194);
+                  border: 2px solid rgb(187, 183, 183);
+                  border-radius: 10px;
+                  padding: 20px;
+                  box-shadow: 5px 5px 15px rgb(197, 194, 194);
+                  display: flex;
+                  flex-direction: row;
+                  rowGap:5px;
+                  overflow: hidden;
+                }
+     
+                .image_container {
+                  flex: 1;
+                  display: flex;
+                  justify-content: flex-start;
+                  width: 400px;
+                  height: 600px;
+                  padding-right: 15px;
+                }
+     
+                .image {
+                  width: 100%;
+                  height: 100%;
+                  max-height: 500px;
+                  border: 2px solid black;
+                }
+     
+                .text_container {
+                  flex: 1;
+                  display: flex;
+                  flex-direction: column;
+                  font-size: 18px;
+                  color: red;
+                  line-height: 1.5;
+                  overflow-y: auto; /* Enables vertical scrolling */
+                  max-height: 800px; /* Ensures it stays within the page */
+                  padding-right: 10px;
+                }
+     
+                .title {
+                  color: black;
+                  font-size: 24px;
+                  font-weight: bold;
+                  text-align: center;
+                  margin-bottom: 10px;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="pdf_container">
+                <div class="image_container">
+                  <img src="data:image/jpeg;base64,${base64Image}" class="image" />
+                </div>
+                <div class="text_container">
+                  <h2 class="title">📝 T.A.R's Feedback</h2>
+                  ${stepsHtml}
+                </div>
               </div>
-              </div>
-            </div>
-          </body>
-        </html>
-      `;
+            </body>
+          </html>
+        `;
+       
+          const { uri } = await Print.printToFileAsync({
+            html: htmlContent,
+            base64: false,
+          });
   
-      const { uri } = await Print.printToFileAsync({
-        html: htmlContent,
-        base64: false,
-      });
+          const fileUri = FileSystem.documentDirectory + `${sanitizedFileName}.pdf`;
+          await FileSystem.moveAsync({
+            from: uri,
+            to: fileUri,
+          });
   
-      const fileUri = FileSystem.documentDirectory + `processed_${Date.now()}.pdf`;
-      await FileSystem.moveAsync({
-        from: uri,
-        to: fileUri,
-      });
+          // Add the file URI to history
+          const history = await AsyncStorage.getItem("history");
+          let historyArray = history ? JSON.parse(history) : [];
+          historyArray.push(fileUri);
+          await AsyncStorage.setItem("history", JSON.stringify(historyArray));
   
-      // Add the file URI to history
-      const history = await AsyncStorage.getItem("history");
-      let historyArray = history ? JSON.parse(history) : [];
-      historyArray.push(fileUri);
-      await AsyncStorage.setItem("history", JSON.stringify(historyArray));
+          // Navigate to the history page after saving
+          navigation.navigate("Main", { screen: "History" });
   
-      // Navigate to the history page after saving
- navigation.navigate("Main", { screen: "History" });  
-      alert("PDF saved successfully!");
+          alert("PDF saved successfully!");
+        }
+      );
     } catch (error) {
       console.error("Error saving PDF:", error);
     }
@@ -198,6 +251,7 @@ export default function Process({ route, navigation }) {
       ) : (
         <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 0.8 }} style={styles.imageContainer}>
           <Image source={{ uri: photoUri }} style={styles.image} />
+          <View style={styles.contBoard}>
           <ScrollView contentContainerStyle={styles.textContainer}>
             {steps &&
               Object.entries(steps).map(([key, value], index) => (
@@ -206,6 +260,7 @@ export default function Process({ route, navigation }) {
                 </Text>
               ))}
           </ScrollView>
+          </View>
         </ViewShot>
       )}
       {!loading && (
@@ -240,28 +295,36 @@ const styles = StyleSheet.create({
   imageContainer: {
     alignItems: "center",
     position: "relative",
-    width: width * 0.8,
+    width: width * 0.9,
     height: height * 0.7,
+    rowGap: 12,
   },
   image: {
     width: "100%",
     height: "100%",
-    position: "absolute",
     zIndex: 0,
   },
+  contBoard:{
+    position:"absolute",
+    bottom:"4%",
+    borderColor: "rgb(134, 130, 130)",
+    borderWidth: 2,
+    borderRadius: 10,
+    width:330,
+    height:250,
+    padding:10,
+  },
   textContainer: {
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-    width: width * 0.8,
     padding: 10,
+    zIndex: 1,
+    width: "100%",
   },
   stepText: {
-    fontSize: 24,
+    fontSize: 18,
     fontFamily: "ComingSoon",
     color: "red",
     textAlign: "left",
     flexWrap: "wrap",
-    width: "60%",
   },
   buttonContainer: {
     flexDirection: "row",
