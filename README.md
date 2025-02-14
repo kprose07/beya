@@ -6,9 +6,11 @@ Scan the QR code below with your iPhone to download and install the app:
 
 ![Scan to Download](assets/images/qr-code.png)
 
-
 Our A.I. system can currently provide step by step instructions to solving simple mathematics problems. Step by step support in solving higher level mathematics problems will be available in future iterations. 
 
+Also Please fill out the survey below and let us know what you think about the applicaiton!
+
+![Scan to Download](assets/images/survey-qrcode.png)
 
 # Welcome to your Expo app 👋
 
