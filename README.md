@@ -1,3 +1,17 @@
+## Download the app (iOS only)
+
+This is a beta verison of the final application. Currently, this app is only available for iOS. Android support will be coming in the future.
+
+Scan the QR code below with your iPhone to download and install the app:
+
+![Scan to Download](assets/images/qr-code.png)
+
+Our A.I. system can currently provide step by step instructions to solving simple mathematics problems. Step by step support in solving higher level mathematics problems will be available in future iterations. 
+
+Also Please fill out the survey below and let us know what you think about the applicaiton!
+
+![Scan to Download](assets/images/survey-qrcode.png)
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
