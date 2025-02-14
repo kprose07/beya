@@ -1,6 +1,6 @@
 ## Download the app (iOS only)
 
-Currently, this app is only available for iOS. Android support will be coming in the future.
+This is a beta verison of the final application. Currently, this app is only available for iOS. Android support will be coming in the future.
 
 Scan the QR code below with your iPhone to download and install the app:
 
